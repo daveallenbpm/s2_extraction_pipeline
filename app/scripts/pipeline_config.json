@@ -132,7 +132,7 @@
         "done": "next",
         "outputs": "print"
       },
-      "defaultPrinter":"Tube Printer",
+      "defaultPrinter":"g216bc",
       "input":         {
         "role": "samples.extraction.manual.dna_and_rna.byproduct_tube_rnap",
         "model":"tubes",
@@ -173,7 +173,7 @@
         "done": "next",
         "outputs": "print"
       },
-      "defaultPrinter":"Tube Printer",
+      "defaultPrinter":"g216bc",
       "input":         {
         "role": "samples.extraction.manual.dna_and_rna.input_tube_rnap.batched",
         "model":"tubes"
@@ -213,7 +213,7 @@
         "done": "transfer",
         "outputs": "print"
       },
-      "defaultPrinter":"Tube Printer",
+      "defaultPrinter":"g216bc",
       "input":         {
         "role": "samples.extraction.manual.spin_column_dna",
         "model":"spin_columns",
@@ -253,7 +253,7 @@
         "done": "next",
         "outputs": "print"
       },
-      "defaultPrinter":"Tube Printer",
+      "defaultPrinter":"g216bc",
       "input":         {
         "role": "samples.extraction.manual.rna_only.input_tube_rnap.batched",
         "model":"tubes"
@@ -293,7 +293,7 @@
         "done": "transfer",
         "outputs": "print"
       },
-      "defaultPrinter":"Tube Printer",
+      "defaultPrinter":"g216bc",
       "input":         {
         "role": "samples.extraction.manual.spin_column_rna",
         "model":"spin_columns",
@@ -350,7 +350,7 @@
         "done": "next",
         "outputs": "print"
       },
-      "defaultPrinter":"Tube Printer",
+      "defaultPrinter":"g216bc",
       "input":         {
         "role": "samples.extraction.manual.dna_only.input_tube_dnap.batched",
         "model":"tubes"
@@ -427,7 +427,7 @@
         "done": "transfer",
         "outputs": "print"
       },
-      "defaultPrinter":"Tube Printer",
+      "defaultPrinter":"g216bc",
       "input":         {
         "role": "samples.extraction.qiacube.dna_and_rna.input_tube_nap.batched",
         "model":"tubes",
@@ -471,7 +471,7 @@
         "done": "next",
         "outputs": "print"
       },
-      "defaultPrinter":"Tube Printer",
+      "defaultPrinter":"g216bc",
       "input":         {
         "role":  "samples.extraction.qiacube.dna_and_rna.byproduct_tube_rnap",
         "model": "tubes",
@@ -513,7 +513,7 @@
         "done": "transfer",
         "outputs": "print"
       },
-      "defaultPrinter":"Tube Printer",
+      "defaultPrinter":"g216bc",
       "input":         {
         "role": "samples.extraction.qiacube.dna_and_rna.input_tube_rnap.batched",
         "model":"tubes",
@@ -558,7 +558,7 @@
         "done": "transfer",
         "outputs": "print"
       },
-      "defaultPrinter":"Tube Printer",
+      "defaultPrinter":"g216bc",
       "input":         {
         "role": "samples.extraction.qiacube.rna_only.input_tube_rnap.batched",
         "model":"tubes",
@@ -620,7 +620,7 @@
         "done": "transfer",
         "outputs": "print"
       },
-      "defaultPrinter":"Tube Printer",
+      "defaultPrinter":"g216bc",
       "input":         {
         "role": "samples.extraction.qiacube.dna_only.input_tube_dnap.batched",
         "model":"tubes",
@@ -692,7 +692,7 @@
           "done":     "next",
           "outputs":  "print"
         },
-        "defaultPrinter":"Tube Printer",
+        "defaultPrinter":"g216bc",
         "input": {
           "role":  "samples.extraction.qiacube.dna_and_rna.input_tube_dnap.to_be_retubed.batched",
           "model": "tubes"
@@ -747,7 +747,7 @@
         "cache": {
           "outputs": "singular(create)"
         },
-        "defaultPrinter": "Tube Printer",
+        "defaultPrinter": "g216bc",
         "input": {
           "role":       "samples.extraction.eppendorf_tube.dna.to_be_retubed.batched",
           "model":      "tubes",
@@ -777,7 +777,7 @@
     "presenters": [
       {
         "presenterName": "rack_scan_presenter",
-        "defaultPrinter": "Tube Printer",
+        "defaultPrinter": "g216bc",
         "model": "RackScanModel",
         "input": {
           "role":  "samples.extraction.fluidx_tube.dna.to_be_racked",
@@ -834,7 +834,7 @@
         "cache": {
           "outputs": "singular(create)"
         },
-        "defaultPrinter": "Tube Printer",
+        "defaultPrinter": "g216bc",
         "input": {
           "role":  "samples.extraction.eppendorf_tube.rna.to_be_retubed.batched",
           "model": "tubes",
@@ -864,7 +864,7 @@
     "presenters": [
       {
         "presenterName": "rack_scan_presenter",
-        "defaultPrinter": "Tube Printer",
+        "defaultPrinter": "g216bc",
         "model": "RackScanModel",
         "input": {
           "role":  "samples.extraction.fluidx_tube.rna.to_be_racked",
@@ -920,7 +920,7 @@
         "home":      "next",
         "outputs":   "print"
       },
-      "defaultPrinter":"Tube Printer",
+      "defaultPrinter":"g216bc",
       "input":         {
         "role":   "samples.extraction.qiacube.dna_only.input_tube_dnap.to_be_retubed.batched",
         "model":  "tubes"
@@ -971,7 +971,7 @@
         "done":      "next",
         "outputs": "print"
       },
-      "defaultPrinter":"Tube Printer",
+      "defaultPrinter":"g216bc",
       "input":         {
         "role": "samples.extraction.qiacube.rna_only.input_tube_rnap.to_be_retubed.batched",
         "model":"tubes"
@@ -1005,7 +1005,7 @@
     "presenters":    [
       {
         "presenterName":  "volume_control_presenter",
-        "defaultPrinter": "Tube Printer",
+        "defaultPrinter": "g216bc",
         "input":          {
           "role":  "samples.rack.stock.dna",
           "model": "tube_racks"
@@ -1045,7 +1045,7 @@
     "presenters":    [
       {
         "presenterName":  "rack_scan_presenter",
-        "defaultPrinter": "Tube Printer",
+        "defaultPrinter": "g216bc",
         "model":          "VolumeCheckModel",
         "input":          {
           "role":  "samples.rack.stock.dna.volume_control_added",
