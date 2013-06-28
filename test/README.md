@@ -7,15 +7,16 @@ Use of a fakeDOM for view testing
 Many of the spec files here use a fakeDOM object in order to test components at the level of what the user sees. Using jQuery triggering of events, it is possible to simulate a user walking through a process, and to "see" what is visible on the page.
  
 ```javascript
-	fakeDOM = $('<div><div id="content"></div></div>');
+fakeDOM = $('<div><div id="content"></div></div>');
 ```
 
 A selector function is also created so that we may examine the updated fakeDOM.
 
-	fakeContent = function () {
-      return fakeDOM.find("#content");
-    };
-
+```javascript
+fakeContent = function () {
+  return fakeDOM.find("#content");
+};
+```
 
 The above shows the creation of a fake DOM object. This is passed to the presenter that we wish to test as it's selection parameter.
 
@@ -23,19 +24,22 @@ Since the presenter appends to the selection it has been given, rather than dire
 
 A simple example of this can be found in the reception app:
 
-
-	it('gives the user the option to create or load a 	manifest', function () {
-      expect(fakeContent().find('#create-manifest-	btn').length).toEqual(1);
-	  expect(fakeContent().find('#read-manifest-btn').length).toEqual(1);
-    });
+```javascript
+it('gives the user the option to create or load a 	manifest', function () {
+  expect(fakeContent().find('#create-manifest-	btn').length).toEqual(1);
+  expect(fakeContent().find('#read-manifest-btn').length).toEqual(1);
+});
+```
 
 Here, jQuery is used to check the existence of two buttons on a page. Checking the length of a jQuery object is a simple way of detecting the presence of something on a page.
 
 More complicated examples use jQuery to trigger events:
 
-	fakeContent()
-      .find("#read-manifest-btn")
-      .trigger('click');
+```javascript
+fakeContent()
+  .find("#read-manifest-btn")
+  .trigger('click');
+```
       
 The above simulates a click on the read manifest button.
 
@@ -48,13 +52,16 @@ The fake user module (in *test/lib*) contains two very useful functions for test
 
 **aPressReturnEvent** simply simulates a user hitting the return key. The below example is from the *reception_app_spec*:
 
-	fakeContent()
-      .find('#barcodeReader .barcodeInput')
-      .val("2881460250710")
-      .trigger(FakeUser.aPressReturnEvent());
+```javascript
+fakeContent()
+  .find('#barcodeReader .barcodeInput')
+  .val("2881460250710")
+  .trigger(FakeUser.aPressReturnEvent());
+```      
       
 **waitsForIt** waits for a particular element of the DOM to appear. It takes on three parameters: a **jQuery object**, a **context** (or selector), and a **callback** for when the DOM element is found in the jQuery object. This makes it very useful for asynchronous testing, where a human tester would have to wait for something to appear on screen before being able to perform an action. The below example is in the setup for a test in the *reception_app_spec*.
 
+```javascript
 	beforeEach(function () {
       runs(function () {
         results.resetFinishedFlag();
@@ -75,6 +82,7 @@ The fake user module (in *test/lib*) contains two very useful functions for test
         waitsFor(results.hasFinished);
       });
     });
+```
       
 The above simulates file input, then waits for the registration button to appear on the display. This example makes use of the *test_helper* module, which is explained in another section.
 
@@ -91,6 +99,7 @@ The *resource_test_helper* module (*app/components/S2Mapper/test/resource_test_h
 
 The *test_helper* is used as a wrapper to all tests, as in the following basic example:
  
+ ```javascript
 	define([your_module
 	  , 'mapper_test/resource_test_helper']
 	  , function(YourModule, TestHelper){
@@ -123,15 +132,15 @@ The *test_helper* is used as a wrapper to all tests, as in the following basic e
 	    });
 	  });
 	});
+```
 
 **expected** sets a flag for when expected results are found. This is very useful in asynchronous testing, where callbacks are are used (with promises). This means that **expected** can be passed as a callback when the expected actions have been a success. Likewise, **unexpected** can be passed when an asynchronous action fails.
 
 After a run of asynchronous callbacks using **then** and **fail** (more info on these can be found in the section about ***promises***), we can use **waitsFor(results.expected)** which will wait until **results.expected** has been called.
 
-
-
 An example from the source is shown below:
 
+```javascript
 	runs(function () {
       results.resetFinishedFlag();
       app.getS2Root()
@@ -149,6 +158,7 @@ An example from the source is shown below:
     });
 	
     waitsFor(results.hasFinished);
+```
     
 This is taken from the *selection_page_spec*. This part of the setup retrieves a tube from the test data. The **waitsFor** will stall executation of code after this. If it is successful in finding the tube, **results.expected** is executed, **results.hasFinished** will return true, and **waitsFor** will stop stalling the code.
 
@@ -163,6 +173,8 @@ Test_config in the s2_extraction_pipeline uses the test_config in the S2Mapper (
 
 The data is dealt with in stages: it mimicks a very specific path through the system. Perhaps the best example of this is in the file *dna_and_ran_manual_test_data.js*. A condensed version of the default and first two stages is shown below to illustrate:
 
+
+```javascript
 	{"default":{
 	  "calls":[
 	    {"description": "Get the root JSON"…},
@@ -183,15 +195,19 @@ The data is dealt with in stages: it mimicks a very specific path through the sy
 	    {"description": "Find tube by barcode (1220017279668)"…}
 	  ]
 	},…
+```
 	
 At each stage, there is a list of available calls.
 
 The test config allows you to use this data in a manner that simulates a real interaction with the server. It is made in such a way that the mocked responses (made by the *test_config*) are asynchronous, with an artificial delay being imposed upon the responses. This is to make it as close as possible as talking to a real system.
 
+```javascript
 	sendResponse: function(callback) { setTimeout(callback, 100); },
+```
 
 The data can be loaded must be loaded with **loadTestData**. If a stage needs to be added previous to this (e.g. retrieval of the root: every server interaction requires the root!) the method **cummulativeLoadingTestDataInFirstStage** can be used. Below is an example of both being used, again from the *selection_page_spec*. This is a full beforeEach() setup:
 
+```javascript
 	beforeEach(function () {
 	  // load the test data
       config.loadTestData(selectionPageData);
@@ -230,6 +246,7 @@ The data can be loaded must be loaded with **loadTestData**. If a stage needs to
 
        PubSub.removeAll('s2.status.error');
      });
+```
 	
 Right at the start, test data for the selection page is loaded. On top of this, the root data is loaded as the first stage of the test data. 
 
