@@ -62,26 +62,26 @@ fakeContent()
 **waitsForIt** waits for a particular element of the DOM to appear. It takes on three parameters: a **jQuery object**, a **context** (or selector), and a **callback** for when the DOM element is found in the jQuery object. This makes it very useful for asynchronous testing, where a human tester would have to wait for something to appear on screen before being able to perform an action. The below example is in the setup for a test in the *reception_app_spec*.
 
 ```javascript
-	beforeEach(function () {
-      runs(function () {
-        results.resetFinishedFlag();
-        fakeContent()
-          .find("#read-manifest-btn")
-          .trigger('click');
+beforeEach(function () {
+  runs(function () {
+    results.resetFinishedFlag();
+    fakeContent()
+      .find("#read-manifest-btn")
+      .trigger('click');
 
-        //wait for jquery animation
-        waits(500);
+    //wait for jquery animation
+    waits(500);
 
-        //simulate file input
-        presenter.manifestReaderComponent.presenter.responderCallback(manifestCSVData)
-          .then(function () {
-            FakeUser.waitsForIt(fakeDOM, "#registrationBtn", results.expected);
-          })
-          .fail(results.unexpected);
-          });
-        waitsFor(results.hasFinished);
+    //simulate file input
+    presenter.manifestReaderComponent.presenter.responderCallback(manifestCSVData)
+      .then(function () {
+        FakeUser.waitsForIt(fakeDOM, "#registrationBtn", results.expected);
+      })
+      .fail(results.unexpected);
       });
-    });
+    waitsFor(results.hasFinished);
+  });
+});
 ```
       
 The above simulates file input, then waits for the registration button to appear on the display. This example makes use of the *test_helper* module, which is explained in another section.
@@ -100,38 +100,38 @@ The *resource_test_helper* module (*app/components/S2Mapper/test/resource_test_h
 The *test_helper* is used as a wrapper to all tests, as in the following basic example:
  
  ```javascript
-	define([your_module
-	  , 'mapper_test/resource_test_helper']
-	  , function(YourModule, TestHelper){
+define([your_module,
+ 'mapper_test/resource_test_helper']
+  , function(YourModule, TestHelper){
 	  
-	  // this module takes on a function callback
-	  TestHelper(function (results){
+  // this module takes on a function callback
+  TestHelper(function (results){
 	    
-	    // all testing goes in here.
-	    // For example:
+  // all testing goes in here.
+  // For example:
 	    
-	    describe("Your Module", function(){
-	      it("Does what we expect!", function(){
+    describe("Your Module", function(){
+      it("Does what we expect!", function(){
 	        
-	        var stuff, expectedStuff = {};
+	    var stuff, expectedStuff = {};
 	        
-	        runs(function(){
-	          YourModule.getStuff
-	            .fail(results.unexpected)
-	            .then(function(retrievedStuff){
-	              stuff = retrievedStuff;
-	            })
-	            .fail(results.unexpected)
-	            .then(results.expected);
-	        });
-	             
-	        waitsFor(results.hasFinished);
-	        
-	        expect(stuff).toEqual(expectedStuff);
-	      });
+	    runs(function(){
+	      YourModule.getStuff
+	        .fail(results.unexpected)
+	        .then(function(retrievedStuff){
+	          stuff = retrievedStuff;
+	        })
+	        .fail(results.unexpected)
+	        .then(results.expected);
 	    });
+	             
+	    waitsFor(results.hasFinished);
+	        
+	    expect(stuff).toEqual(expectedStuff);
 	  });
-	});
+    });
+  });
+});
 ```
 
 **expected** sets a flag for when expected results are found. This is very useful in asynchronous testing, where callbacks are are used (with promises). This means that **expected** can be passed as a callback when the expected actions have been a success. Likewise, **unexpected** can be passed when an asynchronous action fails.
@@ -141,23 +141,23 @@ After a run of asynchronous callbacks using **then** and **fail** (more info on 
 An example from the source is shown below:
 
 ```javascript
-	runs(function () {
-      results.resetFinishedFlag();
-      app.getS2Root()
-        .then(function (root) {
-          return root.find("tube1UUID");
-        })
-        .then(function (initialLabware) {
-          model = {
-            user:    "123456789",
-            labware: initialLabware
-          };
-        })
-        .then(results.expected)
-        .fail(results.unexpected)
-    });
+runs(function () {
+  results.resetFinishedFlag();
+  app.getS2Root()
+    .then(function (root) {
+      return root.find("tube1UUID");
+    })
+    .then(function (initialLabware) {
+      model = {
+        user:    "123456789",
+        labware: initialLabware
+      };
+    })
+    .then(results.expected)
+    .fail(results.unexpected)
+});
 	
-    waitsFor(results.hasFinished);
+waitsFor(results.hasFinished);
 ```
     
 This is taken from the *selection_page_spec*. This part of the setup retrieves a tube from the test data. The **waitsFor** will stall executation of code after this. If it is successful in finding the tube, **results.expected** is executed, **results.hasFinished** will return true, and **waitsFor** will stop stalling the code.
@@ -177,24 +177,24 @@ The data is dealt with in stages: it mimicks a very specific path through the sy
 ```javascript
 	{"default":{
 	  "calls":[
-	    {"description": "Get the root JSON"…},
-	    {"description": "Find tube by barcode (1220017279667)"…}
-	  ]
-	},
-	{"1":{
-	  "calls":[
-	    {"description": "Find tube by barcode (1220017279667)"…},
-	    {"description": "Get the search result (tube)"…},
-	    {"description": "Find the order by tube uuid"…}
-	  ]
-	},
-	{"2":{
-	  "calls":[
-	    {"description": "Find the order by tube uuid"…},
-	    {"description": "Get the search results (order)"…},
-	    {"description": "Find tube by barcode (1220017279668)"…}
-	  ]
-	},…
+    {"description": "Get the root JSON"…},
+    {"description": "Find tube by barcode (1220017279667)"…}
+  ]
+},
+{"1":{
+  "calls":[
+    {"description": "Find tube by barcode (1220017279667)"…},
+    {"description": "Get the search result (tube)"…},
+    {"description": "Find the order by tube uuid"…}
+  ]
+},
+{"2":{
+  "calls":[
+    {"description": "Find the order by tube uuid"…},
+    {"description": "Get the search results (order)"…},
+    {"description": "Find tube by barcode (1220017279668)"…}
+  ]
+},…
 ```
 	
 At each stage, there is a list of available calls.
@@ -202,50 +202,50 @@ At each stage, there is a list of available calls.
 The test config allows you to use this data in a manner that simulates a real interaction with the server. It is made in such a way that the mocked responses (made by the *test_config*) are asynchronous, with an artificial delay being imposed upon the responses. This is to make it as close as possible as talking to a real system.
 
 ```javascript
-	sendResponse: function(callback) { setTimeout(callback, 100); },
+sendResponse: function(callback) { setTimeout(callback, 100); },
 ```
 
 The data can be loaded must be loaded with **loadTestData**. If a stage needs to be added previous to this (e.g. retrieval of the root: every server interaction requires the root!) the method **cummulativeLoadingTestDataInFirstStage** can be used. Below is an example of both being used, again from the *selection_page_spec*. This is a full beforeEach() setup:
 
 ```javascript
-	beforeEach(function () {
-	  // load the test data
-      config.loadTestData(selectionPageData);
+beforeEach(function () {
+  // load the test data
+  config.loadTestData(selectionPageData);
       
-      // load the root as the first stage
-      config.cummulativeLoadingTestDataInFirstStage(rootTestData);
+  // load the root as the first stage
+  config.cummulativeLoadingTestDataInFirstStage(rootTestData);
 
-      var model;
+  var model;
 
-      runs(function () {
-        results.resetFinishedFlag();
-        app.getS2Root()
-          .then(function (root) {
-            return root.find("tube1UUID");
-          })
-          .then(function (initialLabware) {
-            model = {
-              user:    "123456789",
-              labware: initialLabware
-            };
-          })
-          .then(results.expected)
-          .fail(results.unexpected)  
-        });
+  runs(function () {
+    results.resetFinishedFlag();
+    app.getS2Root()
+      .then(function (root) {
+        return root.find("tube1UUID");
+      })
+      .then(function (initialLabware) {
+        model = {
+          user:    "123456789",
+          labware: initialLabware
+        };
+      })
+      .then(results.expected)
+      .fail(results.unexpected)  
+    });
 
-        waitsFor(results.hasFinished);
+    waitsFor(results.hasFinished);
 
-        runs(function () {
-          results.resetFinishedFlag();
-          presenter.setupPresenter(model, function () {
-            return fakeContent();
-          });
-          results.expected();
-         });
-        waitsFor(results.hasFinished);
-
-       PubSub.removeAll('s2.status.error');
+    runs(function () {
+      results.resetFinishedFlag();
+      presenter.setupPresenter(model, function () {
+        return fakeContent();
+      });
+      results.expected();
      });
+    waitsFor(results.hasFinished);
+
+   PubSub.removeAll('s2.status.error');
+});
 ```
 	
 Right at the start, test data for the selection page is loaded. On top of this, the root data is loaded as the first stage of the test data. 
