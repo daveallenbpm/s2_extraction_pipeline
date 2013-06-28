@@ -4,9 +4,11 @@ Testing in the s2_extraction_pipeline
 Use of a fakeDOM for view testing
 ---------------------------------
 
-Many of the spec files here use a fakeDOM object in order to test components at the level of what the user sees. Using jQuery triggering of events, it is possible to simulate a user walking through a process, and to "see" what is visible on the page. 
-
+Many of the spec files here use a fakeDOM object in order to test components at the level of what the user sees. Using jQuery triggering of events, it is possible to simulate a user walking through a process, and to "see" what is visible on the page.
+ 
+```javascript
 	fakeDOM = $('<div><div id="content"></div></div>');
+```
 
 A selector function is also created so that we may examine the updated fakeDOM.
 
