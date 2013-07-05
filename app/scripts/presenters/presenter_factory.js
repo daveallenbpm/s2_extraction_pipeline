@@ -26,7 +26,8 @@ define([
   'extraction_pipeline/presenters/lab_activities_presenter',
   'extraction_pipeline/presenters/manifest_maker_presenter',
   'extraction_pipeline/presenters/manifest_reader_presenter',
-  'extraction_pipeline/presenters/summary_page_presenter'
+  'extraction_pipeline/presenters/summary_page_presenter',
+  'extraction_pipeline/presenters/graph_presenter'
 ], function(TubePresenter, SpinColumnPresenter, WasteTubePresenter, RackPresenter, GelPresenter, PlatePresenter) {
   'use strict';
 
