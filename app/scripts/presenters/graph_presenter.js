@@ -1,5 +1,66 @@
-define([], function () {
+define(['text!extraction_pipeline/html_partials/graph_partial.html'], function (graphPartialHtml) {
   var graphPresenter = Object.create(null);
+
+  function updateGraph(nodes, links) {
+    nodes.attr('transform', function (d) {
+      return 'translate(' + d.x + ', ' + d.y + ')';
+    });
+
+    links
+      .attr('x1', function (d) {
+        return d.source.x;
+      })
+      .attr('y1', function (d) {
+        return d.source.y;
+      })
+      .attr('x2', function (d) {
+        return d.target.x;
+      })
+      .attr('y2', function (d) {
+        return d.target.y;
+      });
+  }
+
+  // Basic algorithm for plotting nodes
+  function setPosition(node, i, depth) {
+    // Compute positions based on distance from root
+    if (!depth) {
+      depth = 0;
+    }
+    if (!node.x) {
+      node.x = (i + 1) * 80;
+      node.y = (depth + 1) * 80;
+      if (depth <= 1) {
+        _.each(node.links, function (link, i2) {
+          setPosition(link, i2, depth + 1);
+        });
+      }
+    }
+  }
+
+  function convertNodesToObjectByName(nodes){
+    var nodesByName = {};
+    nodes.each(function (node) {
+      nodesByName[node.name] = node;
+    });
+    return nodesByName;
+  }
+
+  // Converts link references to the objects they refer to
+  function convertLinkReferencesToObjects(links, nodesByName){
+    links.each(function (link) {
+      link.source = nodesByName[link.source];
+      link.target = nodesByName[link.target];
+      if (!link.source.links) {
+        link.source.links = [];
+      }
+      link.source.links.push(link.target);
+      if (!link.target.links) {
+        link.target.links = [];
+      }
+      link.target.links.push(link.source);
+    })
+  };
 
   $.extend(graphPresenter, {
     register: function (callback) {
@@ -11,11 +72,9 @@ define([], function () {
     },
 
     init: function () {
-      d3.select('#graph')
-        .style("display", "block");
-
+      this.view = $('#graph').append(graphPartialHtml);
+      this.d3GraphSelection = d3.select('#vis').attr('transform', 'translate(20, 20)');
       this.plot();
-
       return this;
     },
 
@@ -26,7 +85,9 @@ define([], function () {
           { name: 'Peter'},
           { name: 'Jon'},
           { name: 'Jimmers'},
-          { name: 'Hodor'}
+          { name: 'Hodor'},
+          { name: 'Vasily'},
+          { name: 'Steven'}
         ],
         links: [
           {
@@ -40,20 +101,24 @@ define([], function () {
             target: 'Hodor'},
           {
             source: 'Jimmers',
-            target: 'Hodor'}
+            target: 'Hodor'},
+          {
+            source: "Peter",
+            target: 'Vasily'
+          },
+          {
+            source: 'Jon',
+            target: 'Steven'
+          }
         ]
-
       };
 
-      $('#graph').append('<svg style="border:2px solid black"><g id="vis"></g></svg>');
-      var vis = d3.select('#vis').attr('transform', 'translate(20, 20)');
-
       // Build initial link elements - Build first so they are under the nodes
-      var links = vis.selectAll('line.link').data(json.links);
+      var links = this.d3GraphSelection.selectAll('line.link').data(json.links);
       links.enter().append('line').attr('class', 'link');
 
       // Build initial node elements
-      var nodes = vis.selectAll('g.node').data(json.nodes);
+      var nodes = this.d3GraphSelection.selectAll('g.node').data(json.nodes);
       nodes.enter().append('g').attr('class', 'node').append('circle').attr('r', 10);
 
       // Add the node titles
@@ -62,65 +127,21 @@ define([], function () {
         .attr("dy", ".31em")
         .style("stroke", "black")
         .text(function (d) {
-        return d.name;
-      });
+          return d.name;
+        });
 
-      // Store nodes in a hash by name
-      var nodesByName = {};
-      nodes.each(function (d) {
-        nodesByName[d.name] = d;
-      });
+      var nodesByName = convertNodesToObjectByName(nodes);
 
-      // Convert link references to objects
-      links.each(function (link) {
-        link.source = nodesByName[link.source];
-        link.target = nodesByName[link.target];
-        if (!link.source.links) {
-          link.source.links = [];
-        }
-        link.source.links.push(link.target);
-        if (!link.target.links) {
-          link.target.links = [];
-        }
-        link.target.links.push(link.source);
-      });
+      convertLinkReferencesToObjects(links, nodesByName);
 
-      // Compute positions based on distance from root
-      // Put algorithm here
-      var setPosition = function (node, i, depth) {
-        if (!depth) {
-          depth = 0;
-        }
-        if (!node.x) {
-          node.x = (i + 1) * 60;
-          node.y = (depth + 1) * 60;
-          if (depth <= 1) {
-            _.each(node.links, function (d, i2) {
-              setPosition(d, i2, depth + 1);
-            });
-          }
-
-        }
-
-      };
+      // Sub our own algorithm for this
       nodes.each(setPosition);
 
       // Update inserted elements with computed positions
-      nodes.attr('transform', function (d) {
-        return 'translate(' + d.x + ', ' + d.y + ')';
-      });
+      updateGraph(nodes, links);
 
-      links.attr('x1',function (d) {
-        return d.source.x;
-      }).attr('y1',function (d) {
-          return d.source.y;
-        }).attr('x2',function (d) {
-          return d.target.x;
-        }).attr('y2', function (d) {
-          return d.target.y;
-        });
-
-      nodes.on('click', function(node){
+      // Add basic click functionality
+      nodes.on('click', function (node) {
         console.log(node.name);
       });
     }
