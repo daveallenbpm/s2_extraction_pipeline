@@ -53,9 +53,27 @@ define(['text!extraction_pipeline/html_partials/graph_partial.html'], function (
 
     function initialiseCoord(data) {
 
-//      _.sortBy(data.nodes, function (node) {
-//        return
-//      });
+      function sortLinksByNameThenByTarget(linkOne, linkTwo) {
+        var linkOneSource = linkOne.source.name;
+        var linkTwoSource = linkTwo.source.name;
+
+        var linkOneTarget = linkOne.target.name;
+        var linkTwoTarget = linkTwo.target.name;
+
+        if (linkOneSource != linkTwoSource) {
+          if(linkOneSource === "root") return -1;
+          if(linkTwoSource === "root") return 1;
+          if (linkOneSource < linkTwoSource) return -1;
+          if (linkOneSource > linkTwoSource) return 1;
+          return 0;
+        }
+
+        if (linkOneTarget < linkTwoTarget) return -1;
+        if (linkOneTarget > linkTwoTarget) return 1;
+        return 0;
+      }
+
+      data.links.sort(sortLinksByNameThenByTarget);
 
       _.each(data.nodes, function (node, index) {
         $.extend(node, {x: index * grid_deltaX, y: 0, index: index});
