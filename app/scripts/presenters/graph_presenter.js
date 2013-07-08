@@ -194,7 +194,7 @@ define(['text!extraction_pipeline/html_partials/graph_partial.html'], function (
                   .attr('transform', function () {
                     return "translate(" + x + "," + y + ")";
                   });
-            };
+            }
           });
 
       var updateLinkPositions = function () {
@@ -274,18 +274,17 @@ define(['text!extraction_pipeline/html_partials/graph_partial.html'], function (
                 hidePanel();
               });
               $('#addNode').on('click', function (event) {
-                nodesContainer.empty();
-                linksContainer.empty();
-//                svg.append('g').attr('id', 'nodesContainer');
-//                var name = "node_" + json.nodes.length;
-//                json.nodes.splice(i+1, 0, {'name': name});
-//                json.links.push({source: d.name, target: name});
-//
-//
-//                var nodesByName = convertNodesToObjectByName(json.nodes);
-//                convertLinkReferencesToObjects(json.links, nodesByName);
-//                addNodesCoordonates(json);
-//
+                nodes.remove();
+                var edges = linksContainer.selectAll('line').remove();
+                svg.append('g').attr('id', 'nodesContainer');
+                var name = "node_" + json.nodes.length;
+                json.nodes.splice(i+1, 0, {'name': name});
+                json.links.push({source: d.name, target: name});
+
+                var nodesByName = convertNodesToObjectByName(json.nodes);
+                convertLinkReferencesToObjects(json.links, nodesByName);
+                addNodesCoordonates(json);
+
                 updateNodes();
                 updateLinks();
                 updateNodePositions();
