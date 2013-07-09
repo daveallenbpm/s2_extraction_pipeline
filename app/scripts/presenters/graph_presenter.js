@@ -165,6 +165,17 @@ define(['text!extraction_pipeline/html_partials/graph_partial.html'], function (
   function zoomIn(node) {
     return function (event) {
       if (node.subGraph) {
+        var presenter = this;
+        this.parentGraphData = this.graphData;
+
+       // temporary solution!
+        this.view.find("#zoom-out-btn")
+          .removeClass("hidden")
+          .on("click", function(){
+            presenter.refreshGraph(presenter.parentGraphData);
+            presenter.view.find("#zoom-out-btn").addClass("hidden");
+          });
+
         this.refreshGraph(node.subGraph);
       }
     }
