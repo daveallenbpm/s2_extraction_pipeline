@@ -1,101 +1,118 @@
 define(['text!extraction_pipeline/html_partials/graph_partial.html'], function (graphPartialHtml) {
   var graphPresenter = Object.create(null);
 
-  function addNodesCoordonates(data) {
-    console.log("data", data);
-    var grid_deltaX = 50;
-    var grid_deltaY = 50;
-    initialiseCoord(data);
-    moveIfNeeded(data);
-    function moveIfNeeded(data) {
-      function moveIfNeeded_rec(nodeIndex, data) {
-        if (nodeIndex > 0) {
-          console.log('node', nodeIndex, " === ", data.nodes[nodeIndex].name);
-          var sources = _.chain(data.links).filter(function (link) {
-            console.log(" >> ", link.source.name, "->", link.target.name, data.nodes[nodeIndex].name);
-            return link.target.name === data.nodes[nodeIndex].name;
-          }).pluck('source').value();
-          if (sources.length > 1) {
-            console.log(nodeIndex, " -> source considered : ", _.min(sources, function (s) {
-              return s.x;
-            }));
-            var startNode = _.min(sources, function (source) {
-              return source.x;
-            });
-            var endNode = data.nodes[nodeIndex];
-            var startNodeX = startNode.x;
-            var endNodeX = endNode.x;
-            var startNodeY = startNode.y;
-            var endNodeY = endNode.y;
-
-            if (startNodeY === endNodeY) {
-              _.chain(data.nodes)
-                  .filter(function (node) {
-                    return node.x > startNodeX && node.x < endNodeX;
-                  })
-                  .each(function (node) {
-                    node.y += grid_deltaY;
-                  });
+  var json = {
+    title: "Pipeline overview",
+    nodes: [
+      { name: 'root', fixed: true },
+      { name:       'B',
+        'subGraph': {
+          title: "Component B",
+          nodes: [
+            { name: 'B0', fixed: true },
+            { name: 'B1'},
+            { name: 'B2'},
+            { name: 'B3'},
+            { name: 'B4'}
+          ],
+          links: [
+            {
+              source: 'B0',
+              target: 'B1'
+            },
+            {
+              source: 'B1',
+              target: 'B2'
+            },
+            {
+              source: 'B2',
+              target: 'B4'
+            },
+            {
+              source: 'B0',
+              target: 'B3'
+            },
+            {
+              source: 'B3',
+              target: 'B4'
             }
-//          } else {
-//            console.log("only one source");
-          }
-          moveIfNeeded_rec(nodeIndex - 1, data);
+          ]
         }
+      },
+      { name: 'C'},
+      { name: 'D'},
+      { name: 'E'},
+      { name: 'F'},
+      { name: 'G'},
+      { name: 'H'}
+    ],
+    links: [
+      {
+        source: 'root',
+        target: 'B'
+      },
+      {
+        source: 'root',
+        target: 'H'
+      },
+      {
+        source: 'B',
+        target: 'C'
+      },
+      {
+        source: 'C',
+        target: 'D'
+      },
+      {
+        source: 'C',
+        target: 'F'
+      },
+      {
+        source: 'C',
+        target: 'H'
+      },
+      {
+        source: "D",
+        target: 'E'
+      },
+      {
+        source: "D",
+        target: 'F'
+      },
+      {
+        source: "E",
+        target: 'F'
+      },
+      {
+        source: 'F',
+        target: 'G'
+      },
+      {
+        source: 'G',
+        target: 'H'
       }
+    ]
+  };
 
-      moveIfNeeded_rec(data.nodes.length - 1, data);
-      _.each(data.nodes, function (node) {
-        node.x += 30;
-        node.y += 30;
-      })
-    }
+//  json = {
+//    nodes : [ {name:"benoit"}],
+//    links: []
+//  }
 
-    function initialiseCoord(data) {
+  function convertLinkReferencesToObjects(graphData) {
 
-      function sortLinksByNameThenByTarget(linkOne, linkTwo) {
-        var linkOneSource = linkOne.source.name;
-        var linkTwoSource = linkTwo.source.name;
+    var nodesByName = {};
+    _.each(graphData.nodes, function (node) {
+      nodesByName[node.name] = node;
+      delete node.links;
+    });
 
-        var linkOneTarget = linkOne.target.name;
-        var linkTwoTarget = linkTwo.target.name;
-
-        if (linkOneSource != linkTwoSource) {
-          if(linkOneSource === "root") return -1;
-          if(linkTwoSource === "root") return 1;
-          if (linkOneSource < linkTwoSource) return -1;
-          if (linkOneSource > linkTwoSource) return 1;
-          return 0;
-        }
-
-        if (linkOneTarget < linkTwoTarget) return -1;
-        if (linkOneTarget > linkTwoTarget) return 1;
-        return 0;
-      }
-
-      data.links.sort(sortLinksByNameThenByTarget);
-
-      _.each(data.nodes, function (node, index) {
-        $.extend(node, {x: index * grid_deltaX, y: 0, index: index});
-        console.log(node);
-      });
-    }
-
-    return data;
-  }
-
-  function convertNodesToObjectByName(nodes) {
-    return _.reduce(nodes, function (memo, node) {
-      memo[node.name] = node;
-      return memo
-    }, {});
-  }
-
-  // Converts link references to the objects they refer to
-  function convertLinkReferencesToObjects(links, nodesByName) {
-    _.each(links, function (link) {
-      link.source = link.source.name ? link.source : nodesByName[link.source];
-      link.target = link.target.name ? link.target : nodesByName[link.target];
+    // Convert link references to objects -
+    // d3 needs each link to have source and target objects, with their respective links
+    _.each(graphData.links, function (link) {
+      // check to see if the references have been consolidated previously!
+      link.source = $.isPlainObject(link.source) ? nodesByName[link.source.name] : nodesByName[link.source];
+      link.target = $.isPlainObject(link.target) ? nodesByName[link.target.name] : nodesByName[link.target];
       if (!link.source.links) {
         link.source.links = [];
       }
@@ -104,7 +121,80 @@ define(['text!extraction_pipeline/html_partials/graph_partial.html'], function (
         link.target.links = [];
       }
       link.target.links.push(link.source);
-    })
+    });
+  }
+
+  function addLink(currentNode){
+    return function (event){
+      var targetNodeName = this.contextMenuSelection.find("input.add-link-input").val();
+
+      if (targetNodeName === currentNode.name){
+        // trying to link to itself: not valid
+        console.log("Input error: cannot link node to itself");
+        return;
+      }
+
+      var linkExists = _.find(this.graphData.links, function(link){
+        return link.source.name === currentNode.name && link.target.name === targetNodeName;
+      });
+      var reversedLinkExists = _.find(this.graphData.links, function(link){
+        return link.source.name === targetNodeName && link.target.name === currentNode.name;
+      });
+      var nodeExists = _.find(this.graphData.nodes, function (n) {
+        return n.name === targetNodeName;
+      });
+
+      if (nodeExists) {
+        if(linkExists || reversedLinkExists){
+          // link exists: input error
+          console.log("Input error: link already exists")
+        }
+        else{
+          var newLink = { source: currentNode.name, target: targetNodeName };
+          this.graphData.links.push(newLink);
+          this.refreshGraph(this.graphData);
+        }
+      }
+      else {
+        // input error, link not found
+        console.log("Input error: link not found");
+      }
+    }
+  }
+
+  function zoomIn(node) {
+    return function (event) {
+      if (node.subGraph) {
+        this.refreshGraph(node.subGraph);
+      }
+    }
+  }
+
+  function addNode(currentNode) {
+    return function (event) {
+      var newNodeName = this.contextMenuSelection.find("input.add-node-input").val();
+      var newNode = { name: newNodeName };
+      var newLink = { source: currentNode.name || "root", target: newNode.name };
+      this.graphData.nodes.push(newNode);
+      this.graphData.links.push(newLink);
+      this.refreshGraph(this.graphData);
+    }
+  }
+
+  function deleteNode(event) {
+    var currentNode = this.currentNode;
+
+    // delete the node
+    this.graphData.nodes = _.reject(this.graphData.nodes, function (n) {
+      return n === currentNode;
+    });
+
+    // delete all links associated with this node
+    this.graphData.links = _.reject(this.graphData.links, function (link) {
+      return link.source === currentNode || link.target === currentNode;
+    });
+
+    this.refreshGraph(this.graphData);
   }
 
   $.extend(graphPresenter, {
@@ -118,235 +208,140 @@ define(['text!extraction_pipeline/html_partials/graph_partial.html'], function (
 
     init: function () {
       this.view = $('#graph').append(graphPartialHtml);
-      this.svg = d3.select('#graphic')
-//          .append('svg:svg')
-          .attr('width', 500)
-          .attr('height', 300)
-          .attr('id', 'nodeGraph');
-
-      this.svg.append("svg:rect")
-          .attr('width', "100%")
-          .attr('height', "100%")
-          .attr('stroke', "#000")
-          .attr('stroke-width', 3)
-          .attr('fill', 'none');
+      this.contextMenuSelection = this.view.find("#context-menu");
+      this.loadData(json);
       this.plot();
       return this;
     },
 
+    loadData:function(json){
+      this.graphData = json;
+    },
+
+    setupContextMenuClickHandlers: function (node) {
+
+      // first unbind previous click events
+      var subGraphBtn = this.contextMenuSelection.find("#sub-graph-btn").off();
+      var addNodeBtn = this.contextMenuSelection.find("#add-node-btn").off();
+      var addLinkBtn = this.contextMenuSelection.find("#add-link-btn").off();
+      var deleteNodeBtn = this.contextMenuSelection.find("#delete-node-btn").off();
+
+      subGraphBtn.on('click', _.bind(zoomIn(node),this));
+      addNodeBtn.on('click', _.bind(addNode(node), this));
+      addLinkBtn.on('click', _.bind(addLink(node), this));
+      deleteNodeBtn.on('click', _.bind(deleteNode, this));
+
+
+    },
+
+    clearGraph: function () {
+      this.view.find("#graphic").empty();
+      this.force.stop();
+    },
+
+    refreshGraph: function (data) {
+      this.clearGraph();
+      this.loadData(data);
+      this.plot();
+      this.closeContextMenu();
+    },
+
     plot: function () {
-      // Sample data set
-      var json = {
-        nodes: [
-          { name: 'root'},
-          { name: 'B'},
-          { name: 'C'},
-          { name: 'D'},
-          { name: 'E'},
-          { name: 'F'},
-          { name: 'G'},
-          { name: 'H'}
-        ],
-        links: [
-          {
-            source: 'root',
-            target: 'B'
-          },
-          {
-            source: 'root',
-            target: 'H'
-          },
-          {
-            source: 'B',
-            target: 'C'
-          },
-          {
-            source: 'C',
-            target: 'D'
-          },
-          {
-            source: 'C',
-            target: 'F'
-          },
-          {
-            source: 'C',
-            target: 'H'
-          },
-          {
-            source: "D",
-            target: 'E'
-          },
-          {
-            source: "D",
-            target: 'F'
-          },
-          {
-            source: "E",
-            target: 'F'
-          },
-          {
-            source: 'F',
-            target: 'G'
-          },
-          {
-            source: 'G',
-            target: 'H'
-          }
-        ]
-      };
+      var graphData = this.graphData;
+      this.view.find("#title").text(graphData.title);
+      var graphPresenter = this;
+      var width = 960, height = 500;
+      var color = d3.scale.category20();
 
-      var nodesByName = convertNodesToObjectByName(json.nodes);
-      convertLinkReferencesToObjects(json.links, nodesByName);
-      addNodesCoordonates(json);
+      var nodes = graphData.nodes;
+      var links = graphData.links;
 
-      var drag = d3.behavior.drag()
-          .on("drag", function (d, i) {
-            d.x += d3.event.dx;
-            d.y += d3.event.dy;
-            updateNode(this, d.x, d.y);
-//            updateNodePositions();
-            updateLinkPositions();
+      var svg = d3.select("#graphic")
+        .attr("width", width)
+        .attr("height", height);
 
-            function updateNode(svgNode, x, y) {
-              d3.select(svgNode)
-                  .attr('transform', function () {
-                    return "translate(" + x + "," + y + ")";
-                  });
-            }
+      convertLinkReferencesToObjects(graphData);
+
+      var force = d3.layout.force()
+        .charge(-120)
+        .linkDistance(50)
+        .size([width, height])
+        .nodes(nodes)
+        .links(links)
+        .start();
+
+      var link = svg.selectAll(".edge")
+        .data(links)
+        .enter().append("line")
+        .attr("class", "edge")
+        .style("stroke-width", function (d) {
+          return Math.sqrt(d.value);
+        });
+
+      var node = svg.selectAll(".node")
+        .data(nodes)
+        .enter().append("svg:g")
+        .attr("class", "node")
+        .call(force.drag)
+
+      node.append("circle")
+        .attr("class", "node-circle")
+        .attr("r", 10)
+        .style("fill", function (d) {
+          return color(d.group);
+        });
+
+      var title = node.append("text")
+        .text(function (d) {
+          return d.name;
+        });
+
+      force.on("tick", function () {
+        link.attr("x1", function (d) {
+          return d.source.x;
+        })
+          .attr("y1", function (d) {
+            return d.source.y;
+          })
+          .attr("x2", function (d) {
+            return d.target.x;
+          })
+          .attr("y2", function (d) {
+            return d.target.y;
           });
 
-      var updateLinkPositions = function () {
-        linksContainer.selectAll('line')
-            .data(json.links)
-            .attr("x1", function (d) {
-              return d.source.x;
-            })
-            .attr("y1", function (d) {
-              return d.source.y;
-            })
-            .attr("x2", function (d) {
-              return d.target.x;
-            })
-            .attr("y2", function (d) {
-              return d.target.y;
-            });
-      };
+        node.attr('transform', function (d) {
+          return "translate(" + d.x + "," + d.y + ")";
+        });
+      });
 
-      var updateNodePositions = function () {
-        nodesContainer.selectAll('.node')
-            .data(json.nodes)
-            .attr('transform', function (d) {
-              return "translate(" + d.x + "," + d.y + ")";
-            });
-      };
+      node.on('click', function (clickedNode) {
+        graphPresenter.setupContextMenu(clickedNode);
+      });
 
-      var hidePanel = function () {
-        panel.classed('hidden', true);
-        $('#input-name').off('keypress');
-        $('#addNode').off('click');
-      };
+      this.force = force;
+    },
 
-      var svg = this.svg;
-      svg.on('click', hidePanel);
-
-      var linksContainer = svg.append('g').attr('id', 'linksContainer');
-
-      var updateLinks = function () {
-        var edges = linksContainer.selectAll('line')
-                .data(json.links)
-                .enter()
-                .append('line')
-                .attr("x1", function (d) {
-                  return d.source.x;
-                })
-                .attr("y1", function (d) {
-                  return d.source.y;
-                })
-                .attr("x2", function (d) {
-                  return d.target.x;
-                })
-                .attr("y2", function (d) {
-                  return d.target.y;
-                })
-                .attr("class", 'edge')
-            ;
+    setupContextMenu: function (currentNode) {
+      this.currentNode = currentNode;
+      this.setupContextMenuClickHandlers(currentNode);
+      this.contextMenuSelection.removeClass("hidden");
+      this.contextMenuSelection.find(".context-menu-title").text("Options for node " + currentNode.name);
+      if (!currentNode.subGraph) {
+        this.contextMenuSelection.find("#sub-graph-btn").hide();
       }
+      else {
+        this.contextMenuSelection.find("#sub-graph-btn").show();
+      }
+    },
 
-      var nodesContainer = svg.append('g').attr('id', 'nodesContainer');
+    closeContextMenu: function (){
+      var subGraphBtn = this.contextMenuSelection.find("#sub-graph-btn").off();
+      var addNodeBtn = this.contextMenuSelection.find("#add-node-btn").off();
+      var addLinkBtn = this.contextMenuSelection.find("#add-link-btn").off();
+      var deleteNodeBtn = this.contextMenuSelection.find("#delete-node-btn").off();
 
-      var updateNodes = function () {
-        var nodes = nodesContainer.selectAll('circle').data(json.nodes);
-        nodes.enter()
-            .append('svg:g')
-            .attr("class", 'node')
-            .on('click', function (d, i) {
-              var node = this;
-              panel.classed('hidden', false);
-              foreignObject
-                  .attr('x', d.x)
-                  .attr('y', d.y);
-              $('#input-name').val(d.name).on('keypress', function (event) {
-                if (event.which !== 13) return;
-                d.name = $('#input-name').val();
-                d3.select(node).select('.node-text').text(d.name);
-                hidePanel();
-              });
-              $('#addNode').on('click', function (event) {
-                nodes.remove();
-                var edges = linksContainer.selectAll('line').remove();
-                svg.append('g').attr('id', 'nodesContainer');
-                var name = "node_" + json.nodes.length;
-                json.nodes.splice(i+1, 0, {'name': name});
-                json.links.push({source: d.name, target: name});
-
-                var nodesByName = convertNodesToObjectByName(json.nodes);
-                convertLinkReferencesToObjects(json.links, nodesByName);
-                addNodesCoordonates(json);
-
-                updateNodes();
-                updateLinks();
-                updateNodePositions();
-                hidePanel();
-              });
-
-              d3.event.stopPropagation();
-            })
-            .call(drag)
-            .attr('transform', function (d) {
-              return "translate(" + d.x + "," + d.y + ")";
-            });
-
-        nodes.append('circle')
-            .attr("r", 20)
-            .attr("class", 'node-circle');
-
-        nodes.append('text')
-            .attr("text-anchor", "middle")
-            .attr("y", 5)
-            .attr('class', 'node-text')
-            .text(function (d) {
-              return d.name;
-            });
-      };
-
-      updateLinks();
-      updateNodes();
-
-      var foreignObject = svg.append("foreignObject")
-          .attr("width", 480)
-          .attr("height", 500);
-
-      var panel = foreignObject
-              .append("xhtml:body")
-              .html("<input type='text' id='input-name'><button id='addNode'>add node</button>")
-              .attr("id", 'node-panel')
-              .attr('class', 'hidden')
-              .on('click', function (d) {
-                d3.event.stopPropagation();
-              })
-
-          ;
-
+      this.contextMenuSelection.addClass("hidden");
     }
   });
 

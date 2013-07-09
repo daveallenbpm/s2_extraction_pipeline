@@ -24,8 +24,19 @@ body, html {
 
 #graphic {
   border: 2px solid black;
-  width: 500px;
-  height: 300px;
+}
+
+.context-menu-row {
+  display: block;
+}
+
+#context-menu {
+  position: absolute;
+  top: 50px;
+  left: 50px;
+  background: red;
+  padding: 20px;
+  border-radius: 5px;
 }
 
 #node-panel{
