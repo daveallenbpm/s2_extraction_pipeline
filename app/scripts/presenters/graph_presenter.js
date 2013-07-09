@@ -181,9 +181,8 @@ define(['text!extraction_pipeline/html_partials/graph_partial.html'], function (
     }
   }
 
-  function deleteNode(event) {
-    var currentNode = this.currentNode;
-
+  function deleteNode(currentNode) {
+    return function (event){
     // delete the node
     this.graphData.nodes = _.reject(this.graphData.nodes, function (n) {
       return n === currentNode;
@@ -195,6 +194,40 @@ define(['text!extraction_pipeline/html_partials/graph_partial.html'], function (
     });
 
     this.refreshGraph(this.graphData);
+    }
+  }
+
+  function deleteLink(link){
+    return function (event) {
+      this.graphData.links = _.reject(this.graphData.links, function(l){
+        return l === link;
+      });
+
+      this.refreshGraph(this.graphData);
+    }
+  }
+
+  function insertNode (link){
+    return function (event) {
+      // add a new node, with link from source to new node
+      var newNodeName = this.linkContextMenuSelection.find("input.insert-node-input").val();
+      var newNode = { name: newNodeName };
+      var newLink = { source: link.source.name || "root", target: newNode.name };
+      this.graphData.nodes.push(newNode);
+      this.graphData.links.push(newLink);
+
+      // add a link from the new node to the target node
+      var targetNodeName = link.target.name;
+      var otherLink = { source: newNode.name, target: targetNodeName };
+      this.graphData.links.push(otherLink);
+
+      // remove the original link
+      this.graphData.links = _.reject(this.graphData.links, function(l){
+        return l === link;
+      });
+
+      this.refreshGraph(this.graphData);
+    }
   }
 
   $.extend(graphPresenter, {
@@ -209,6 +242,7 @@ define(['text!extraction_pipeline/html_partials/graph_partial.html'], function (
     init: function () {
       this.view = $('#graph').append(graphPartialHtml);
       this.contextMenuSelection = this.view.find("#context-menu");
+      this.linkContextMenuSelection = this.view.find("#link-context-menu");
       this.loadData(json);
       this.plot();
       return this;
@@ -229,9 +263,15 @@ define(['text!extraction_pipeline/html_partials/graph_partial.html'], function (
       subGraphBtn.on('click', _.bind(zoomIn(node),this));
       addNodeBtn.on('click', _.bind(addNode(node), this));
       addLinkBtn.on('click', _.bind(addLink(node), this));
-      deleteNodeBtn.on('click', _.bind(deleteNode, this));
+      deleteNodeBtn.on('click', _.bind(deleteNode(node), this));
+    },
 
+    setupLinkContextMenuClickHandlers: function (link){
+      var deleteLinkBtn = this.linkContextMenuSelection.find("#delete-link-btn").off();
+      var insertNodeBtn = this.linkContextMenuSelection.find("#add-node-on-link-btn").off();
 
+      deleteLinkBtn.on('click', _.bind(deleteLink(link), this));
+      insertNodeBtn.on('click', _.bind(insertNode(link), this));
     },
 
     clearGraph: function () {
@@ -244,6 +284,7 @@ define(['text!extraction_pipeline/html_partials/graph_partial.html'], function (
       this.loadData(data);
       this.plot();
       this.closeContextMenu();
+      this.closeLinkContextMenu();
     },
 
     plot: function () {
@@ -319,11 +360,26 @@ define(['text!extraction_pipeline/html_partials/graph_partial.html'], function (
         graphPresenter.setupContextMenu(clickedNode);
       });
 
+      link.on('click', function (clickedLink){
+        graphPresenter.setupLinkContextMenu(clickedLink);
+      });
+
       this.force = force;
     },
 
+    setupLinkContextMenu: function (clickedLink) {
+      this.setupLinkContextMenuClickHandlers(clickedLink);
+      this.linkContextMenuSelection.removeClass("hidden");
+    },
+
+    closeLinkContextMenu: function(){
+      var deleteLinkBtn = this.linkContextMenuSelection.find("#delete-link-btn").off();
+      var insertNodeBtn = this.linkContextMenuSelection.find("#add-node-on-link-btn").off();
+
+      this.linkContextMenuSelection.addClass("hidden");
+    },
+
     setupContextMenu: function (currentNode) {
-      this.currentNode = currentNode;
       this.setupContextMenuClickHandlers(currentNode);
       this.contextMenuSelection.removeClass("hidden");
       this.contextMenuSelection.find(".context-menu-title").text("Options for node " + currentNode.name);
