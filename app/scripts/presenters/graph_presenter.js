@@ -94,11 +94,6 @@ define(['text!extraction_pipeline/html_partials/graph_partial.html'], function (
     ]
   };
 
-//  json = {
-//    nodes : [ {name:"benoit"}],
-//    links: []
-//  }
-
   function convertLinkReferencesToObjects(graphData) {
 
     var nodesByName = {};
