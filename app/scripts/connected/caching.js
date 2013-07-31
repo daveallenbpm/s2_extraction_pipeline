@@ -4,30 +4,7 @@ define([], function() {
   var DeferredCache = Object.create(null);
 
   _.extend(DeferredCache, {
-    init: function() {
-      var instance = Object.create(DeferredCache);
-      var pulled   = [];              // Resources that have been pulled from the cache
-      var results  = $.Deferred();    // Resources currently in the cache
-      _.extend(instance, {
-        // Retrieve an instance from the cache using the handler, which will filter the cache to
-        // find the match, and possibly deal with missing results in a particular fashion.
-        get: function(filter, missing) {
-          var deferred = $.Deferred();
-          results.then(function(array) {
-            var result = _.find(array, filter);
-            return ($.Deferred())[result ? 'resolve' : 'reject'](result);
-          }).then(function(resource) {
-            return resource;                // Result remains the same on success
-          }, function() {
-            return missing(pulled, filter); // Result may be handled differently
-          }).fail(function(message) {
-            deferred.reject(message);
-          }).done(function(result) {
-            recache(result);
-            deferred.resolve(result);
-          });
-          return deferred;
-        },
+
 
         // Behave like a promise but remember that the value of 'results' above can change
         then:    resultsBound('then'),
